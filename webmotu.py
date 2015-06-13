@@ -33,16 +33,6 @@ def validate(read_input):
 	
 	else:
          return False
-#         
-#def user_input():
-#    read_input = raw_input('enter path of file in fasta format containing reads:')
-#    validated = validate(read_input)
-#    if validated==True:
-#        print 'input submitted successfully'
-#        return read_input
-#    else:
-#        print 'please check input'
-#        user_input()
 
 def uparse_pipeline(reads):
     
