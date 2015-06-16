@@ -15,7 +15,7 @@ import xml.etree.ElementTree as ET
 
 app = flask.Flask(__name__)
 app.secret_key = 'solong'
-usrch = '/home/kirti/Desktop/usearch8'
+usrch = '/home/kirti/Desktop/usearch8'#hardcoded: needs to be fixed
 
 def validate(read_input):
 	if (read_input != ' ' and os.path.exists(read_input) and read_input.endswith('.fasta')):
