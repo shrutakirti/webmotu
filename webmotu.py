@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Jun  9 10:37:10 2015
 
-@author: kirti
-"""
 import socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -11,16 +7,10 @@ s.bind(('127.0.1.1', 5000))
 
 import os
 import flask, flask.views
-import timeit
-import subprocess
 import urllib
 import urllib2
 from itertools import groupby
 import xml.etree.ElementTree as ET
-import tabulate
-import time
-
-
 
 
 app = flask.Flask(__name__)
@@ -42,14 +32,17 @@ def uparse_pipeline(reads):
     mapping_reads = usrch + ' -usearch_global ' + reads + ' -db otus.fasta -strand plus -id 0.97 -uc map.uc'
     
     #os.system(derep + ' | '+ ab_sort + ' | '+ clustering_otus + ' | '+ mapping_reads)
-    os.system(derep)
-    os.system(ab_sort)
-    os.system(clustering_otus)
-    os.system(mapping_reads)
-#    flask.flash(subprocess.check_output(derep,shell=True))
-#    
-    flask.flash('DEREPLICATION IN PROGRESS...' + '\n\nDEREPLICATION COMPLETE'+'\n\nCREATED DEREP.FASTA')
     
+    os.system(derep)
+    flask.flash('DEREPLICATION IN PROGRESS...' + '\n\nDEREPLICATION COMPLETE'+'\n\nCREATED DEREP.FASTA')
+    os.system(ab_sort)
+    flask.flash('SORTING...' + '\n\nSORTING COMPLETE'+'\n\nCREATED SORTED.FASTA')
+    os.system(clustering_otus)
+    flask.flash('CLUSTERING...' + '\n\nFINDING OTUS...'+'\n\nCREATED OTUS.FASTA' + '\n\nCREATED RESULTS.FASTA')
+    os.system(mapping_reads)
+    flask.flash('MAPPING READS TO OTUS...' +'\n\nCREATED MAP.UC')
+
+        
 def fasta_read(otus_file):
     otus = open(otus_file)
     fasta_iter = (x[1] for x in groupby(otus, lambda line: line[0] == ">"))
@@ -65,14 +58,19 @@ def fasta_read(otus_file):
 def get_bold_results():
     otus = fasta_read('/home/kirti/otus.fasta')
     list_of_tables = list()
-    logfile = open('log.txt','w')
+    my_dict = {}
+    keycount = 0
+    newfile = open('newfile.fasta','w')
     for otu in otus:
         otu_xml = call_bold_api(otu)
-        logfile.write(otu.xml)
         parsed_otu_table = xml_parser(otu_xml)
+        my_dict[otu] = parsed_otu_table
         list_of_tables.append(parsed_otu_table)
         
-    print list_of_tables
+    for key in my_dict.items():
+        keycount = keycount+1
+    newfile.write(str(keycount))
+    return my_dict
 
 def call_bold_api(otu):
     print otu
@@ -118,9 +116,13 @@ class View(flask.views.MethodView):
             flask.flash('SUCCESSFULLY SUBMITTED '+printed)
             uparse_pipeline(printed)
             flask.flash('uparse done')
-            flask.flash(get_bold_results())
+            my_dict = get_bold_results()
+            for row in zip([key] + value for key, value in sorted(my_dict.items())):
+                flask.flash(row)
+            
+
         else:
-            printed = 'Invalid input. Please try again.'
+            flask.flash('Invalid input. Please try again.')
         
         return self.get()
         
