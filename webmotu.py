@@ -14,10 +14,10 @@ import xml.etree.ElementTree as ET
 
 kirti_home = '/home/kirti/Desktop/' #change this to usearch's location
 kirti_desktop = '/home/kirti/Desktop/'#change this to your desktop
+usrch = kirti_home + 'usearch8'
 
 app = flask.Flask(__name__)
 app.secret_key = 'solong'
-usrch = kirti_home + 'usearch8'
 
 def validate(read_input):
 	if (read_input != ' ' and os.path.exists(read_input) and read_input.endswith('.fasta')):
