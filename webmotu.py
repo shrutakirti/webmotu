@@ -11,13 +11,17 @@ import urllib
 import urllib2
 from itertools import groupby
 import xml.etree.ElementTree as ET
+import ConfigParser
 
-kirti_home = '/home/kirti/Desktop/' #change this to usearch's location
-kirti_desktop = '/home/kirti/Desktop/'#change this to your desktop
-usrch = kirti_home + 'usearch8'
+config = ConfigParser.ConfigParser()
+config.read('/home/kirti/Desktop/webmotu_config.cfg')#change to location of config file
+bold_url = config.get('Section', 'bold_url')        #edit these bits 
+usrch = config.get('Section2','usearch_location')   #in config 
+kirti_desktop = config.get('Section2','my_desktop') #file
 
 app = flask.Flask(__name__)
 app.secret_key = 'solong'
+
 
 def validate(read_input):
 	if (read_input != ' ' and os.path.exists(read_input) and read_input.endswith('.fasta')):
