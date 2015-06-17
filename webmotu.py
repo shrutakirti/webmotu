@@ -12,10 +12,12 @@ import urllib2
 from itertools import groupby
 import xml.etree.ElementTree as ET
 
+kirti_home = '/home/kirti/Desktop/' #change this to usearch's location
+kirti_desktop = '/home/kirti/Desktop/'#change this to your desktop
 
 app = flask.Flask(__name__)
 app.secret_key = 'solong'
-usrch = '/home/kirti/Desktop/usearch8'#hardcoded: needs to be fixed
+usrch = kirti_home + 'usearch8'
 
 def validate(read_input):
 	if (read_input != ' ' and os.path.exists(read_input) and read_input.endswith('.fasta')):
@@ -26,10 +28,10 @@ def validate(read_input):
 
 def uparse_pipeline(reads):
     
-    derep = usrch + ' -derep_fulllength ' + reads +  ' -fastaout derep.fasta -sizeout'
-    ab_sort = usrch + ' -sortbysize derep.fasta -fastaout sorted.fasta -minsize 2'
-    clustering_otus = usrch + ' -cluster_otus sorted.fasta -otus otus.fasta -relabel OTU_ -sizeout -uparseout results.fasta'
-    mapping_reads = usrch + ' -usearch_global ' + reads + ' -db otus.fasta -strand plus -id 0.97 -uc map.uc'
+    derep = usrch + ' -derep_fulllength ' + reads +  ' -fastaout '+kirti_desktop+'derep.fasta -sizeout'
+    ab_sort = usrch + ' -sortbysize '+ kirti_desktop+'derep.fasta -fastaout '+kirti_desktop+'sorted.fasta -minsize 2'
+    clustering_otus = usrch + ' -cluster_otus '+kirti_desktop+'sorted.fasta -otus '+kirti_desktop+'otus.fasta -relabel OTU_ -sizeout -uparseout '+kirti_desktop+'results.fasta'
+    mapping_reads = usrch + ' -usearch_global ' + reads + ' -db '+kirti_desktop+'otus.fasta -strand plus -id 0.97 -uc '+kirti_desktop+'map.uc'
     
     #os.system(derep + ' | '+ ab_sort + ' | '+ clustering_otus + ' | '+ mapping_reads)
     
@@ -109,8 +111,10 @@ class View(flask.views.MethodView):
     
     def get(self):
         return flask.render_template('index.html')	
+    
     def post(self):
         result = validate(flask.request.form['input_file_path'])
+        
         if result == True:
             printed = flask.request.form['input_file_path']
             flask.flash('SUCCESSFULLY SUBMITTED '+printed)
@@ -120,7 +124,6 @@ class View(flask.views.MethodView):
             for row in zip([key] + value for key, value in sorted(my_dict.items())):
                 flask.flash(row)
             
-
         else:
             flask.flash('Invalid input. Please try again.')
         
