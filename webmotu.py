@@ -7,26 +7,30 @@ s.bind(('127.0.1.1', 5000))
 
 import os
 import flask, flask.views
+from flask import Response, request, stream_with_context
 import urllib
 import urllib2
 from itertools import groupby
 import xml.etree.ElementTree as ET
 import ConfigParser
-
-config = ConfigParser.ConfigParser()
-config.read('/home/kirti/Desktop/webmotu_config.cfg')#change to location of config file
-bold_url = config.get('Section', 'bold_url')        #edit these bits 
-usrch = config.get('Section2','usearch_location')   #in config 
-kirti_desktop = config.get('Section2','my_desktop') #file
+import tempfile
 
 app = flask.Flask(__name__)
 app.secret_key = 'solong'
 
 
+config = ConfigParser.ConfigParser()
+readconfig = config.read('/home/kirti/webmotu_config.cfg')#change to location of config file
+#app.config.from_envvar('readconfig', silent=True)
+
+bold_url = config.get('Section', 'bold_url')        #edit these bits 
+usrch = config.get('Section2','usearch_location')   #in config file
+kirti_desktop = config.get('Section2','my_desktop') 
+
+
 def validate(read_input):
 	if (read_input != ' ' and os.path.exists(read_input) and read_input.endswith('.fasta')):
          return True
-	
 	else:
          return False
 
@@ -61,33 +65,21 @@ def fasta_read(otus_file):
         otu_list.append(seq)
     return otu_list    
 
-def get_bold_results():
-    otus = fasta_read('/home/kirti/otus.fasta')
-    list_of_tables = list()
-    my_dict = {}
-    keycount = 0
-    newfile = open('newfile.fasta','w')
-    for otu in otus:
-        otu_xml = call_bold_api(otu)
-        parsed_otu_table = xml_parser(otu_xml)
-        my_dict[otu] = parsed_otu_table
-        list_of_tables.append(parsed_otu_table)
-        
-    for key in my_dict.items():
-        keycount = keycount+1
-    newfile.write(str(keycount))
-    return my_dict
 
 def call_bold_api(otu):
     print otu
     url_values = otu
-    url = 'http://boldsystems.org/index.php/Ids_xml?db=COX1_SPECIES_PUBLIC&sequence='
-    full_url = url+url_values
-    data = urllib2.urlopen(full_url)
+    full_url = bold_url+url_values
+    data = urllib.urlopen(full_url)
+    
     return data
 
 def xml_parser(otu_xml):
-    tree = ET.parse(otu_xml)
+    try:
+        tree = ET.parse(otu_xml)
+    except(tree.ElementTree.ParseError):
+        flask.flash('BOLD API down.')
+                
     root = tree.getroot()
     table = []
     count = 0
@@ -100,16 +92,59 @@ def xml_parser(otu_xml):
         url = match.find('specimen').find('url').text
         table = table + [[ID,taxonomic_id,similarity,url]]
         count = count + 1
-        newcount = count
+       
         if (count%10==0):
             print "processed "+ str(count) +" sequences"
-        count = newcount   
+           
     return table
     
+boldresults = open('templates/boldresults.html','w')
+def dict_to_html(my_dict):
+    boldresults.write( '<html><head><title>WEBMOTU</title></head><body><table border = '+'"1" id = "boldresults">')
+    boldresults.write('<thead><th>otu</th><th>ID</th><th>Taxonomic Identification</th><th>similarity</th><th>url</th></thead>')
+    for key in my_dict.keys():
+        for value in my_dict[key]:
+            
+            boldresults.write( '<tr>' + '<td>' + key + '</td>')
+            if (value==''):
+                boldresults.write('<td>'+'no match found'+'</td>'+'</tr>')
+            else:
+                for v in value:
+                    if v.startswith('http://'):
+                        boldresults.write ('<td>'+'<a href = "'+str(v)+'" onclick=window.open(this.href) target=”_blank”>Click here for full record</a></td>')
+                    else:
+                        boldresults.write ('<td>'+str(v)+'</td>')
+                boldresults.write('</tr>')
+    boldresults.write ('</table></body></html>')
+    print boldresults
+    return boldresults
+
+def get_bold_results():
+    otus = fasta_read(kirti_desktop+'otus.fasta')
+#    list_of_tables = list()
+    my_dict = {}
+    keycount = 0
+    parsed_otu_table=[]
+    parsed_otu_tables=[]
+    for otu in otus:
+        otu_xml = call_bold_api(otu)
+        parsed_otu_table = xml_parser(otu_xml)
+        parsed_otu_tables.append(parsed_otu_table)
+#        parsed_otu_table.append(otu)
+#        list_of_tables.append(parsed_otu_table)
+        if my_dict.has_key(otu):
+            my_dict.pop(otu)
+            my_dict[otu] = parsed_otu_tables
+        else:
+            my_dict[otu] = parsed_otu_table
+       
+            
+    for key in my_dict.items():
+        keycount = keycount+1
+    return my_dict
 
 
-
-
+     
 class View(flask.views.MethodView):
       
     
@@ -120,19 +155,33 @@ class View(flask.views.MethodView):
         result = validate(flask.request.form['input_file_path'])
         
         if result == True:
+            
             printed = flask.request.form['input_file_path']
             flask.flash('SUCCESSFULLY SUBMITTED '+printed)
             uparse_pipeline(printed)
             flask.flash('uparse done')
             my_dict = get_bold_results()
-            for row in zip([key] + value for key, value in sorted(my_dict.items())):
-                flask.flash(row)
+            boldresults = dict_to_html(my_dict)
+           
+#            for row in zip([key] + value for key, value in sorted(my_dict.items())):
+#                flask.flash(row)
+            return flask.render_template('boldresults.html',boldresults = boldresults)
             
         else:
             flask.flash('Invalid input. Please try again.')
         
         return self.get()
-        
+
+#    def stream_template(template_name, **context):
+#        app.update_template_context(context)
+#        t = app.jinja_env.get_template(template_name)
+#        rv = t.stream(context)
+#        rv.enable_buffering(5)
+#        return rv
+#    
+#    def render_large_template():
+#        rows = flask.iter_all_rows()
+#        return Response(View.stream_template('index.html', rows=rows))
         
              
 app.add_url_rule('/', view_func=View.as_view('main'), methods = ['GET','POST'])
