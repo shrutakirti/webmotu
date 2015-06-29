@@ -14,6 +14,7 @@ from itertools import groupby
 import xml.etree.ElementTree as ET
 import ConfigParser
 import tempfile
+import shutil
 
 app = flask.Flask(__name__)
 app.secret_key = 'solong'
@@ -25,8 +26,8 @@ readconfig = config.read('/home/kirti/webmotu_config.cfg')#change to location of
 
 bold_url = config.get('Section', 'bold_url')        #edit these bits 
 usrch = config.get('Section2','usearch_location')   #in config file
-kirti_desktop = config.get('Section2','my_desktop') 
-
+kirti_desktop = tempfile.mkdtemp()#config.get('Section2','my_desktop') 
+print kirti_desktop
 
 def validate(read_input):
 	if (read_input != ' ' and os.path.exists(read_input) and read_input.endswith('.fasta')):
@@ -42,7 +43,7 @@ def uparse_pipeline(reads):
     mapping_reads = usrch + ' -usearch_global ' + reads + ' -db '+kirti_desktop+'otus.fasta -strand plus -id 0.97 -uc '+kirti_desktop+'map.uc'
     
     #os.system(derep + ' | '+ ab_sort + ' | '+ clustering_otus + ' | '+ mapping_reads)
-    
+#    os.system('cd '+kirti_desktop)
     os.system(derep)
     flask.flash('DEREPLICATION IN PROGRESS...' + '\n\nDEREPLICATION COMPLETE'+'\n\nCREATED DEREP.FASTA')
     os.system(ab_sort)
@@ -97,11 +98,13 @@ def xml_parser(otu_xml):
             print "processed "+ str(count) +" sequences"
            
     return table
-    
+
 boldresults = open('templates/boldresults.html','w')
+#boldresults.write('<html><head><title>WEBMOTU</title></head><body>')
+
 def dict_to_html(my_dict):
-    boldresults.write( '<html><head><title>WEBMOTU</title></head><body><table border = '+'"1" id = "boldresults">')
-    boldresults.write('<thead><th>otu</th><th>ID</th><th>Taxonomic Identification</th><th>similarity</th><th>url</th></thead>')
+    boldresults.write( '<table border = '+'"1" name = "boldresults" id = "boldresults">')
+    boldresults.write('<thead><th>otu</th><th>Match ID</th><th>Taxonomic Identification</th><th>similarity</th><th>url</th></thead>')
     for key in my_dict.keys():
         for value in my_dict[key]:
             
@@ -116,10 +119,10 @@ def dict_to_html(my_dict):
                         boldresults.write ('<td>'+str(v)+'</td>')
                 boldresults.write('</tr>')
     boldresults.write ('</table></body></html>')
-    print boldresults
     return boldresults
 
 def get_bold_results():
+    
     otus = fasta_read(kirti_desktop+'otus.fasta')
 #    list_of_tables = list()
     my_dict = {}
@@ -143,10 +146,20 @@ def get_bold_results():
         keycount = keycount+1
     return my_dict
 
+#def stream_template(template_name, **context):
+#        app.update_template_context(context)
+#        t = app.jinja_env.get_template(template_name)
+#        rv = t.stream(context)
+#        rv.enable_buffering(5)
+#        return rv
+#    
+#def render_large_template():
+#    rows = flask.iter_all_rows()
+#    return Response(View.stream_template('index.html', rows=rows))
 
      
 class View(flask.views.MethodView):
-      
+          
     
     def get(self):
         return flask.render_template('index.html')	
@@ -155,33 +168,27 @@ class View(flask.views.MethodView):
         result = validate(flask.request.form['input_file_path'])
         
         if result == True:
-            
+            os.system('cd '+kirti_desktop)
             printed = flask.request.form['input_file_path']
             flask.flash('SUCCESSFULLY SUBMITTED '+printed)
             uparse_pipeline(printed)
             flask.flash('uparse done')
             my_dict = get_bold_results()
             boldresults = dict_to_html(my_dict)
+            os.system('cat '+'templates/init.html templates/boldresults.html > templates/finalresults.html')
+#            shutil.rmtree(kirti_desktop)
+
            
 #            for row in zip([key] + value for key, value in sorted(my_dict.items())):
 #                flask.flash(row)
-            return flask.render_template('boldresults.html',boldresults = boldresults)
+            return flask.render_template('finalresults.html',boldresults = boldresults)
             
         else:
             flask.flash('Invalid input. Please try again.')
         
         return self.get()
 
-#    def stream_template(template_name, **context):
-#        app.update_template_context(context)
-#        t = app.jinja_env.get_template(template_name)
-#        rv = t.stream(context)
-#        rv.enable_buffering(5)
-#        return rv
-#    
-#    def render_large_template():
-#        rows = flask.iter_all_rows()
-#        return Response(View.stream_template('index.html', rows=rows))
+    
         
              
 app.add_url_rule('/', view_func=View.as_view('main'), methods = ['GET','POST'])
