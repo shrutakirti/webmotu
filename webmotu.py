@@ -26,32 +26,48 @@ readconfig = config.read('/home/kirti/webmotu_config.cfg')#change to location of
 
 bold_url = config.get('Section', 'bold_url')        #edit these bits 
 usrch = config.get('Section2','usearch_location')   #in config file
-kirti_desktop = tempfile.mkdtemp()#config.get('Section2','my_desktop') 
+kirti_desktop = tempfile.mkdtemp() 
 print kirti_desktop
 
-def validate(read_input):
-	if (read_input != ' ' and os.path.exists(read_input) and read_input.endswith('.fasta')):
-         return True
-	else:
-         return False
 
-def uparse_pipeline(reads):
-    
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+def validate(read_input, clustering_percentage):
+    if (read_input != ' ' and os.path.exists(read_input) and read_input.endswith('.fasta')):
+        
+        if (clustering_percentage == '' or is_number(clustering_percentage)== False):
+            clustering_percentage = 97.00
+        clustering_percentage = float(clustering_percentage)
+        if(isinstance(clustering_percentage, float) and 100.00 >= clustering_percentage >= 0.00):
+                    print 'percent Fine'+str(clustering_percentage)
+                    return clustering_percentage
+    else:
+        return False
+
+def uparse_pipeline(reads,clustering_percentage):
+    clustering_percentage = clustering_percentage/100
     derep = usrch + ' -derep_fulllength ' + reads +  ' -fastaout '+kirti_desktop+'derep.fasta -sizeout'
     ab_sort = usrch + ' -sortbysize '+ kirti_desktop+'derep.fasta -fastaout '+kirti_desktop+'sorted.fasta -minsize 2'
     clustering_otus = usrch + ' -cluster_otus '+kirti_desktop+'sorted.fasta -otus '+kirti_desktop+'otus.fasta -relabel OTU_ -sizeout -uparseout '+kirti_desktop+'results.fasta'
-    mapping_reads = usrch + ' -usearch_global ' + reads + ' -db '+kirti_desktop+'otus.fasta -strand plus -id 0.97 -uc '+kirti_desktop+'map.uc'
+    mapping_reads = usrch + ' -usearch_global ' + reads + ' -db '+kirti_desktop+'otus.fasta -strand plus -id '+str(clustering_percentage)+' -uc '+kirti_desktop+'map.uc'
     
-    #os.system(derep + ' | '+ ab_sort + ' | '+ clustering_otus + ' | '+ mapping_reads)
-#    os.system('cd '+kirti_desktop)
+    flask.flash('STARTING DEREPLICATION ...')
     os.system(derep)
-    flask.flash('DEREPLICATION IN PROGRESS...' + '\n\nDEREPLICATION COMPLETE'+'\n\nCREATED DEREP.FASTA')
+    flask.flash('DEREPLICATION COMPLETE')
+    flask.flash('TRYING TO SORT...')
     os.system(ab_sort)
-    flask.flash('SORTING...' + '\n\nSORTING COMPLETE'+'\n\nCREATED SORTED.FASTA')
+    flask.flash('SORTING COMPLETE')
+    flask.flash('CLUSTERING...')
     os.system(clustering_otus)
-    flask.flash('CLUSTERING...' + '\n\nFINDING OTUS...'+'\n\nCREATED OTUS.FASTA' + '\n\nCREATED RESULTS.FASTA')
+    flask.flash('CLUSTERING COMPLETE')
+    flask.flash('MAPPING READS TO OTUS...')
     os.system(mapping_reads)
-    flask.flash('MAPPING READS TO OTUS...' +'\n\nCREATED MAP.UC')
+    flask.flash('MAPPING COMPLETE')
 
         
 def fasta_read(otus_file):
@@ -99,10 +115,11 @@ def xml_parser(otu_xml):
            
     return table
 
-boldresults = open('templates/boldresults.html','w')
+
 #boldresults.write('<html><head><title>WEBMOTU</title></head><body>')
 
 def dict_to_html(my_dict):
+    boldresults = open('boldresults.html','w')
     boldresults.write( '<table border = '+'"1" name = "boldresults" id = "boldresults">')
     boldresults.write('<thead><th>otu</th><th>Match ID</th><th>Taxonomic Identification</th><th>similarity</th><th>url</th></thead>')
     for key in my_dict.keys():
@@ -124,7 +141,7 @@ def dict_to_html(my_dict):
 def get_bold_results():
     
     otus = fasta_read(kirti_desktop+'otus.fasta')
-#    list_of_tables = list()
+
     my_dict = {}
     keycount = 0
     parsed_otu_table=[]
@@ -133,8 +150,7 @@ def get_bold_results():
         otu_xml = call_bold_api(otu)
         parsed_otu_table = xml_parser(otu_xml)
         parsed_otu_tables.append(parsed_otu_table)
-#        parsed_otu_table.append(otu)
-#        list_of_tables.append(parsed_otu_table)
+
         if my_dict.has_key(otu):
             my_dict.pop(otu)
             my_dict[otu] = parsed_otu_tables
@@ -165,27 +181,26 @@ class View(flask.views.MethodView):
         return flask.render_template('index.html')	
     
     def post(self):
-        result = validate(flask.request.form['input_file_path'])
+        result = validate(flask.request.form['input_file_path'],flask.request.form['clustering_percentage'])
         
-        if result == True:
+        if result == False:
+            flask.flash("INVALID INPUT")
+        else:
             os.system('cd '+kirti_desktop)
-            printed = flask.request.form['input_file_path']
-            flask.flash('SUCCESSFULLY SUBMITTED '+printed)
-            uparse_pipeline(printed)
-            flask.flash('uparse done')
+            path = flask.request.form['input_file_path']
+            flask.flash('SUCCESSFULLY SUBMITTED '+path)
+            
+            flask.flash('CLUSTERING PERCENTAGE ACCEPTED')
+            uparse_pipeline(path,result)
+            flask.flash('UPARSE PIPELINE SUCCESSFULLY COMPLETED')
+            flask.flash('COMMUNICATING WITH BOLD...')
             my_dict = get_bold_results()
             boldresults = dict_to_html(my_dict)
-            os.system('cat '+'templates/init.html templates/boldresults.html > templates/finalresults.html')
-#            shutil.rmtree(kirti_desktop)
+            os.system('cat '+'templates/init.html boldresults.html > templates/finalresults.html')
 
-           
-#            for row in zip([key] + value for key, value in sorted(my_dict.items())):
-#                flask.flash(row)
             return flask.render_template('finalresults.html',boldresults = boldresults)
             
-        else:
-            flask.flash('Invalid input. Please try again.')
-        
+          
         return self.get()
 
     
