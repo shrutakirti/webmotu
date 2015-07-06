@@ -8,18 +8,23 @@ s.bind(('127.0.1.1', 5000))
 import os
 import bold_helper
 import uparse_helper
+import untitled7
+import file_merge
 import flask, flask.views
 from flask import Response, request, stream_with_context
 import urllib
 import tempfile
 import shutil
 
-app = flask.Flask(__name__)
-app.secret_key = 'solong'
-
 kirti_desktop = tempfile.mkdtemp() 
 print kirti_desktop
 
+app = flask.Flask(__name__)
+app.secret_key = 'solong'
+
+
+my_dict = {}
+output_dict ={}
 
 def is_number(s):
     try:
@@ -40,25 +45,24 @@ def validate(read_input, clustering_percentage):
     else:
         return False
 
-def dict_to_html(my_dict):
-    boldresults = open('boldresults.html','w')
+def dict_to_html(output_dict):
+    boldresult_html = kirti_desktop +'/boldresults.html'
+    boldresults = open(boldresult_html,'w')
     boldresults.write( '<table border = '+'"1" name = "boldresults" id = "boldresults">')
-    boldresults.write('<thead><th>otu</th><th>Match Sequence ID</th><th>Taxonomic Identification</th><th>Similarity with Match</th><th>url</th></thead>')
-    for key in my_dict.keys():
-        for value in my_dict[key]:
-            
-            boldresults.write( '<tr>' + '<td>' + key + '</td>')
-            if (value==''):
-                boldresults.write('<td>'+'no match found'+'</td>'+'</tr>')
+    boldresults.write('<thead><th><center>otu</center></th><th>Match Sequence ID</th><th>Taxonomic Identification</th><th>Similarity with Match</th><th>Match URL</th></thead>')
+    for key in output_dict.keys():
+        
+        boldresults.write( '<tr>' + '<td>' + key + '</td>')
+        for v in output_dict[key]:
+                   
+            if v.startswith('http://'):
+                boldresults.write ('<td>'+'<a href = "'+str(v)+'" onclick=window.open(this.href) target=”_blank”>Click here for full record</a></td>')
             else:
-                for v in value:
-                    if v.startswith('http://'):
-                        boldresults.write ('<td>'+'<a href = "'+str(v)+'" onclick=window.open(this.href) target=”_blank”>Click here for full record</a></td>')
-                    else:
-                        boldresults.write ('<td>'+str(v)+'</td>')
-                boldresults.write('</tr>')
-    boldresults.write ('</table><form><input type="submit" value="Detailed Taxonomic Information" onClick="this.form.submit();this.disabled=true" /></form></body></html>')
+                boldresults.write ('<td>'+str(v)+'</td>')
+        boldresults.write('</tr>')
+    boldresults.write ('</table></body></html>')
     return boldresults
+
 
 class View(flask.views.MethodView):
           
@@ -76,7 +80,7 @@ class View(flask.views.MethodView):
             flask.flash("INVALID INPUT")
             return flask.render_template('index.html')
         else:
-            #START UPARSE PIPELINE(add try-except?)
+            #START UPARSE PIPELINE
             os.system('cd '+kirti_desktop)
             path = flask.request.form['input_file_path']
             flask.flash('SUCCESSFULLY SUBMITTED '+path)
@@ -91,20 +95,22 @@ class View(flask.views.MethodView):
             flask.flash('COMMUNICATING WITH BOLD...')
             
             #UPARSE PIPELINE COMPLETE, START BOLD CALLS FOR GENERAL INFORMATION 
-            my_dict = bold_helper.get_bold_results(kirti_desktop)
-            boldresults = dict_to_html(my_dict)
+            output_dict = bold_helper.get_bold_results(kirti_desktop)
+            boldresults = dict_to_html(output_dict[0])
+            file_merge.file_merge(kirti_desktop)
 
-            os.system('cat '+'templates/init.html boldresults.html > templates/finalresults.html')
-            return flask.render_template('finalresults.html',boldresults = boldresults)
-            
-            #BOLD CALLS FOR SPECIFIC TAXONOMIC INFORMATION
-#            specimen_data = specimen_data_retrieval(parsed_otu_table)
-#            info = specimen_data_parser(specimen_data)
-    
-
+            output_file1 = 'finalresults.html'
+            return flask.render_template(output_file1,boldresults = boldresults)
         return self.get()
-        
+
+    def post2(self):
+        #BOLD CALLS FOR SPECIFIC TAXONOMIC INFORMATION
+        my_dict = output_dict[1]
+        specimen_data = untitled7.specimen_data_retrieval(my_dict)
+          
+        info = untitled7.specimen_data_parser(specimen_data)
+        return flask.render_template('index.html')
              
-app.add_url_rule('/', view_func=View.as_view('main'), methods = ['GET','POST'])
+app.add_url_rule('/', view_func=View.as_view('main'), methods = ['GET','POST','POST2'])
 app.debug = True
 app.run()
