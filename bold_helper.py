@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 
 
 config = ConfigParser.ConfigParser()
-readconfig = config.read('/home/kirti/webmotu_bold_config.cfg')#change to location of config file
+readconfig = config.read('webmotu_bold_config.cfg')#change to location of config file
 #app.config.from_envvar('readconfig', silent=True)
 
 bold_url = config.get('Section', 'bold_url')
