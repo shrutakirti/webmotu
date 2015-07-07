@@ -99,8 +99,8 @@ class View(flask.views.MethodView):
             boldresults = dict_to_html(output_dict[0])
             file_merge.file_merge(kirti_desktop)
 
-            output_file1 = 'finalresults.html'
-            return flask.render_template(output_file1,boldresults = boldresults)
+            
+            return flask.render_template('finalresults.html',boldresults = boldresults)
         return self.get()
 
     def post2(self):
