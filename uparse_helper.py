@@ -11,7 +11,7 @@ import os
 import subprocess
 
 config = ConfigParser.ConfigParser()
-readconfig = config.read('/home/kirti/webmotu_usearch_config.cfg')#change to location of config file
+readconfig = config.read('webmotu_usearch_config.cfg')#change to location of config file
 #app.config.from_envvar('readconfig', silent=True)
 
 usrch = config.get('Section','usearch_location')   #in config file
