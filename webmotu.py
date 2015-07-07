@@ -8,7 +8,7 @@ s.bind(('127.0.1.1', 5000))
 import os
 import bold_helper
 import uparse_helper
-import untitled7
+#import untitled7
 import file_merge
 import flask, flask.views
 from flask import Response, request, stream_with_context
@@ -106,9 +106,9 @@ class View(flask.views.MethodView):
     def post2(self):
         #BOLD CALLS FOR SPECIFIC TAXONOMIC INFORMATION
         my_dict = output_dict[1]
-        specimen_data = untitled7.specimen_data_retrieval(my_dict)
+        #specimen_data = untitled7.specimen_data_retrieval(my_dict)
           
-        info = untitled7.specimen_data_parser(specimen_data)
+        #info = untitled7.specimen_data_parser(specimen_data)
         return flask.render_template('index.html')
              
 app.add_url_rule('/', view_func=View.as_view('main'), methods = ['GET','POST','POST2'])
