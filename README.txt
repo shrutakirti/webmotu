@@ -14,4 +14,4 @@ step 4: Go into the webmotu folder and modify the webmotu_uparse_config.cfg file
 step 5: Go into to the webmotu folder ["cd webmotu"], and run webmotu.py:
         python webmotu.py
 
-step 6: Webmotu is up and running! Celebrate with a cupcake or maybe a cuppa joe.
+step 6: Webmotu is up and running! Celebrate with a cupcake and a cuppa joe.
