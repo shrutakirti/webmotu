@@ -114,19 +114,22 @@ class View(flask.views.MethodView):
             output_dict = bold_helper.get_bold_results(tempdirectory)
             boldresults = dict_to_html(output_dict)
             file_merge.file_merge('templates/finalresults.html','boldresults.html')
-                        
-            return flask.render_template('finalresults.html',boldresults = boldresults)
+            specimen_data = untitled7.specimen_data_retrieval(output_dict)
+            specimen_data_parsed = untitled7.specimen_data_parser(specimen_data)
+            final = untitled7.write_to_file(specimen_data_parsed)
+            file_merge.file_merge('templates/finaltable.html','templates/outfile.html')           
+            return flask.render_template('finalresults.html')
         return self.get()
     
     @app.route('/result')
     def post2():
             #BOLD CALLS FOR SPECIFIC TAXONOMIC INFORMATION
         
-        specimen_data = untitled7.specimen_data_retrieval(output_dict)
-        specimen_data_parsed = untitled7.specimen_data_parser(specimen_data)
-        final = untitled7.write_to_file(specimen_data_parsed)
-        file_merge.file_merge('templates/finaltable.html','templates/outfile.html')
-        return flask.render_template('finaltable.html',final=final)
+#        specimen_data = untitled7.specimen_data_retrieval(output_dict)
+#        specimen_data_parsed = untitled7.specimen_data_parser(specimen_data)
+#        final = untitled7.write_to_file(specimen_data_parsed)
+#        file_merge.file_merge('templates/finaltable.html','templates/outfile.html')
+        return flask.render_template('finaltable.html')
 
 
     
