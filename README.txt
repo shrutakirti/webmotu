@@ -4,7 +4,8 @@ If you want to download and run webmotu on your machine, follow these steps:
 
 step 1: ssh username@servername
 
-step 2: Install Flask and usearch(8 or above!)
+step 2: Install Flask and usearch(8 or above!). Usearch may require an academic license.
+Step 2.5: Make sure your machine contains Python 2.7 or above
 
 step 3: clone webmotu from github: https://github.com/shrutakirti/webmotu.git
 
