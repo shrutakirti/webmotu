@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import socket
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.bind(('127.0.1.1', 5000))
+#import socket
+#s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+#s.bind(('127.0.1.1', 5000))
 
 import os
 import bold_helper
@@ -136,4 +136,4 @@ class View(flask.views.MethodView):
              
 app.add_url_rule('/', view_func=View.as_view('main'), methods = ['GET','POST','POST2'])
 app.debug = True
-app.run(threaded=True)
+app.run(host= '0.0.0.0')
