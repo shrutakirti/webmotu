@@ -1,112 +1,122 @@
 <html>
  <head>
-  <title>WEBMOTU</title>
+ <title>WEBMOTU</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="static/index-style.css" rel="stylesheet" type = "text/css">
+  <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.css" rel="stylesheet" media="screen" type="text/css">
+  <link href="https://www.datatables.net/release-datatables/media/css/jquery.dataTables.css" rel="stylesheet" type="text/css">
+  <link href="https://www.datatables.net/release-datatables/extensions/TableTools/css/dataTables.tableTools.css" rel="stylesheet" type="text/css">
+  <link href="https://www.datatables.net/examples/resources/syntax/shCore.css" rel="stylesheet" type="text/css">
+  <style>
+      table {
+              table-layout: fixed;
+             }
+        td {
+            border: 1px solid black;
+            width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+           }
+  </style>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="static/index-style.css" rel="stylesheet" type = "text/css">
-
-    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.css" rel="stylesheet" media="screen" type="text/css">
-    <link href="https://www.datatables.net/release-datatables/media/css/jquery.dataTables.css" rel="stylesheet" type="text/css">
-    <link href="https://www.datatables.net/release-datatables/extensions/TableTools/css/dataTables.tableTools.css" rel="stylesheet" type="text/css">
-    <link href="https://www.datatables.net/examples/resources/syntax/shCore.css" rel="stylesheet" type="text/css">
-
- </head>
-
-<body background = "linen">
-   <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.20/js/bootstrap.min.js"></script>
-   <script src="https://www.datatables.net/release-datatables/media/js/jquery.js"></script>
-   <script src = "https://www.datatables.net/release-datatables/media/js/jquery.dataTables.js"></script>
-   <script src="https://www.datatables.net/release-datatables/extensions/TableTools/js/dataTables.tableTools.js"></script>
-
-<h3>
+</head>
+ <body background = "linen">
+ <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.20/js/bootstrap.min.js"></script>
+ <script src="https://www.datatables.net/release-datatables/media/js/jquery.js"></script>
+ <script src = "https://www.datatables.net/release-datatables/media/js/jquery.dataTables.js"></script>
+ <script src="https://www.datatables.net/release-datatables/extensions/TableTools/js/dataTables.tableTools.js"></script>
+ <h3>
      <center>WEBMOTU</center>
-</h3>
-
-<nav class="navbar navbar-default navbar-static-top" role="navigation">
-   <div class="navbar-header">
-      <a class="navbar-brand" href="/">Webmotu</a>
+ </h3>
+ <nav class="navbar navbar-default navbar-static-top" role="navigation">
+     <div class="navbar-header">
+         <a class="navbar-brand" href="/">Webmotu</a>
+     </div>
+    <div>
+     <ul class="nav navbar-nav">
+     <li class="active"><a href="/">Submit Job</a></li>
+ <li class=""><a href="https://github.com/shrutakirti/webmotu/wiki/Introduction" onclick=window.open(this.href) target=”_blank”>Wiki</a></li>
+       <li class=""><a href="mailto:s1460720@sms.ed.ac.uk">Report Bug</a></li>
+   </ul>
+   </li>
+   </ul>
    </div>
-   <div>
-      <ul class="nav navbar-nav">
-         <li class="active"><a href="/">Submit Job</a></li>
-         <li class=""><a href="https://github.com/shrutakirti/webmotu/wiki/Introduction" onclick=window.open(this.href) target=”_blank”>Wiki</a></li>
-        <li class=""><a href="mailto:s1460720@sms.ed.ac.uk">Report Bug</a></li>
-         </ul>
-         </li>
-      </ul>
-   </div>
-
-</nav>
+   </nav>
+ <script>$(document).ready( function () {
+         $('#boldresults').dataTable( {
+                     "dom": 'T<"clear">lfrtip',
+                             "tableTools": {
+                              "sRowSelect": "multi",
+                              "aButtons": [
+                              "print"
+                                          ]
+                                          }
+                                      } );
+          } );</script>
+   <script>$(document).ready( function () {
+                   $('#final').dataTable( {
+                               "dom": 'T<"clear">lfrtip',
+                               "tableTools": {
+                               "sRowSelect": "multi",
+                               "aButtons": [
+                               "print"
+                                          ]
+                                           }
+                             } );
+           } );</script>
+ <script>$(document).ready( function () {
+         $('#Phylum').dataTable( {
+                     "dom": 'T<"clear">lfrtip',
+                             "tableTools": {
+                                 "sRowSelect": "multi",
+                                 "aButtons": [
+                                   "print"
+                                             ]
+                                           }
+                                          } );
+                                          } );</script>
 <script>$(document).ready( function () {
-    $('#boldresults').dataTable( {
-        "dom": 'T<"clear">lfrtip',
-        "tableTools": {
-"sRowSelect": "multi",
-            "aButtons": [
-                "print"
-                ]
-        }
-    } );
-} );</script>
+                 $('#Class').dataTable( {
+                   "dom": 'T<"clear">lfrtip',
+                  "tableTools": {
+                        "sRowSelect": "multi",
+                        "aButtons": [
+                                     "print"
+                                   ]
+                                  }
+                                } );
+         } );</script>
+ <script>$(document).ready( function () {
+         $('#Order').dataTable( {
+                     "dom": 'T<"clear">lfrtip',
+                     "tableTools": {
+                          "sRowSelect": "multi",
+                            "aButtons": [
+                                "print"
+                                  ]
+                                }
+                               } );
+                               } );</script>
 <script>$(document).ready( function () {
-    $('#final').dataTable( {
-        "dom": 'T<"clear">lfrtip',
-        "tableTools": {
-"sRowSelect": "multi",
-            "aButtons": [
-                "print"
-                ]
-        }
-    } );
-} );</script>
+        $('#Genus').dataTable( {
+                            "dom": 'T<"clear">lfrtip',
+                            "tableTools": {
+                                 "sRowSelect": "multi",
+                                    "aButtons": [
+                                           "print"
+                                               ]
+                                       }
+                                     } );
+                                     } );</script>
 <script>$(document).ready( function () {
-    $('#Phylum').dataTable( {
-        "dom": 'T<"clear">lfrtip',
-        "tableTools": {
-"sRowSelect": "multi",
-            "aButtons": [
-                "print"
-                ]
-        }
-    } );
-} );</script><script>$(document).ready( function () {
-    $('#Class').dataTable( {
-        "dom": 'T<"clear">lfrtip',
-        "tableTools": {
-"sRowSelect": "multi",
-            "aButtons": [
-                "print"
-                ]
-        }
-    } );
-} );</script><script>$(document).ready( function () {
-    $('#Order').dataTable( {
-        "dom": 'T<"clear">lfrtip',
-        "tableTools": {
-
-            "aButtons": [
-                "print"
-                ]
-        }
-    } );
-} );</script><script>$(document).ready( function () {
-    $('#Genus').dataTable( {
-        "dom": 'T<"clear">lfrtip',
-        "tableTools": {
-
-            "aButtons": [
-                "print"
-                ]
-        }
-    } );
-} );</script><script>$(document).ready( function () {
-    $('#Species').dataTable( {
-        "dom": 'T<"clear">lfrtip',
-        "tableTools": {
-"sRowSelect": "multi",
-            "aButtons": [
-                "print"
-                ]
-        }
-    } );
-} );</script>
+        $('#Species').dataTable( {
+                            "dom": 'T<"clear">lfrtip',
+                            "tableTools": {
+                                 "sRowSelect": "multi",
+                                    "aButtons": [
+                                           "print"
+                                               ]
+                                       }
+                                       } );
+                                       } );</script>
