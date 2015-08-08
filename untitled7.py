@@ -7,122 +7,159 @@ Created on Mon Jun 22 12:21:01 2015
 import urllib
 import xml.etree.ElementTree as ET
 import ConfigParser
+from decimal import *
 
 config = ConfigParser.ConfigParser()
 readconfig = config.read('webmotu_bold_config.cfg')#change to location of config file
 request_url = config.get('Section', 'bold_species_url')
-#for sanity check
-#my_dict = {'ACTCTATATTTTATTTTCGGAGCTTGAGCAGGTATAGTAGGAACTTCTCTAAGAATTCTTATTCGAGCAGAATTAGGTCATCCTGGTGCATTAATTGGTGATGATCAGATTTATAACGTAATTGTTACA':['LSAFR2136-12','Bastilla torrida','1','someurl'], 
-#'ACATTATATTTNATTTTNGGAATTTGAGCAGGAATAGTAGGAACATCCTTAAGACTATTAATTCGAGCAGAATTGGAAATCCTNGGATCTTTAATTGGAGATGACCAAATTTATAACACTATTGTTACA':['GWORL383-09','Deltote deceptoria','1','someurl'],'ACCTTATACTTCATTTTNGGAGCTTGATCAGGAATAGTAGGAACTTCACTTAGTATACTTATTCGAGCAGAACTTAATCAACCCGGATCTCTTATTGGAGATGATCAAATTTATAATGTTATTGTAACA':['No hit','--','--','--'],}
 specimen_datas=[]
 specimen_data_parsed=[]
+specimen_dict = {}
 
 def specimen_data_retrieval(my_dict):
-    
-   # request_url = 'http://www.boldsystems.org/index.php/API_Public/specimen?ids='
+    # request_url = 'http://www.boldsystems.org/index.php/API_Public/specimen?ids='
     for key in my_dict.iterkeys():
-        
+
         value = my_dict[key]
-        seq_id = value[0]
-        print request_url+str(seq_id)
+        seq_id = value[1]
+
         if (not seq_id == 'No hit'):
             specimen_data = urllib.urlopen(request_url+str(seq_id))
+            specimen_dict[key] = specimen_data
         else:
-            specimen_data = ''
-        specimen_datas.append([key,specimen_data])
+            specimen_data = 'Unknown'
+            specimen_dict[key]=specimen_data
 
-    return specimen_datas
+    return specimen_dict
 
+def specimen_data_parser(specimen_dict,output_dict):
+    outfile = open('templates/outfile.html','w')
 
-def specimen_data_parser(specimen_datas):
-    
-    phylums = [] #list all phylums in result
-    class_names = []# list all classes in result
-    orders = []#list all orders in result
-    genuss = []#list all genuses in result
-    speciess = []#list all species in result
-    
-    phylum_set = set()#set of all phylums
-    classname_set = set()#set of all classes
-    order_set = set()#set of all orders
-    genus_set = set()#set of all genuses
-    species_set = set() #set of all species
-        
-    for specimen_data in specimen_datas:
-        if (not specimen_data[1]==''):
-            
-            tree = ET.parse(specimen_data[1])
+    phylum_dict={}
+    phylum_size_dict={}
+    phylum_count_dict={}
+    classname_dict={}
+    classname_size_dict={}
+    classname_count_dict={}
+    order_dict={}
+    order_size_dict={}
+    order_count_dict={}
+    genus_dict={}
+    genus_size_dict={}
+    genus_count_dict={}
+    species_dict={}
+    species_size_dict={}
+    species_count_dict={}
+
+    no_hits_size = 0
+    no_hits_count = 0
+
+    total_cluster_size = 0
+    total_records = 0
+
+    for otu in specimen_dict.iterkeys():
+        specimen_data = specimen_dict[otu]
+        if(otu in output_dict):
+            size = int((output_dict[otu])[0])
+        else:
+            continue
+        total_cluster_size += size
+        if (not specimen_data=='Unknown'):
+
+            tree = ET.parse(specimen_data)
             root = tree.getroot()
-            
+
         #parse data from second call to BOLD: detailed taxonomic information
             for record in root.findall('record'):
-                
+                total_records+=1
+
                 phylum = record.find('taxonomy').find('phylum').find('taxon').find('name').text
                 class_name = record.find('taxonomy').find('class').find('taxon').find('name').text
                 order = record.find('taxonomy').find('order').find('taxon').find('name').text
                 genus = record.find('taxonomy').find('genus').find('taxon').find('name').text
                 species = record.find('taxonomy').find('species').find('taxon').find('name').text
-                
-                phylums.append(phylum) #populate phylums[]
-                class_names.append(class_name)#populate classnames[]
-                orders.append(order) #populate orders[]
-                genuss.append(genus) #populate genuss[]
-                speciess.append(species) #populate speciess[]
-                specimen_data_parsed.append([specimen_data[0],phylum,class_name,order,genus,species])
-                
-                phylum_set.add(phylum) #populate phylum_set
-                classname_set.add(class_name) #populate classname_set
-                order_set.add(order) #populate order_set
-                genus_set.add(genus) #populate genus_set
-                species_set.add(species) #populate species_set
 
-                total_phylum_count = len(phylums) #total number of phylums in phylums[]
-                total_classname_count = len(class_names)#total number of classnames in class_names[]
-                total_order_count = len(orders)
-                total_genus_count = len(genuss)
-                total_species_count = len(speciess)
-                
-                
+                specimen_data_parsed.append([otu,phylum,class_name,order,genus,species])
 
-                
-                for phylum in phylum_set:
-                    phylum_count = phylums.count(phylum)#no of instances of a genus in genuss[]
-                    phylum_percentage = float((phylum_count*100)/total_phylum_count)#percentage of a genus in genuss[]
-                    print "no of "+phylum +" in list of phylums is "+ str(phylum_count)
-                    print "% of "+phylum+ "is "+str(phylum_percentage)     
-                
-                for classname in classname_set:
-                    classname_count = class_names.count(classname)#no of instances of a classname in class_names[]
-                    classname_percentage = float((classname_count*100)/total_classname_count)#percentage of a classname in class_names[]
-                    print "no of "+classname +" in list of classnames is "+ str(classname_count)
-                    print "% of "+classname+ "is "+str(classname_percentage)
-            
-                for order in order_set:
-                    order_count = orders.count(order)#no of instances of a order in orders[]
-                    order_percentage = float((order_count*100)/total_order_count)#percentage of a order in orders[]
-                    print "no of "+order +" in list of orders is "+ str(order_count)
-                    print "% of "+order+ "is "+str(order_percentage) 
-                
-                for genus in genus_set:
-                    genus_count = genuss.count(genus)#no of instances of a genus in genuss[]
-                    genus_percentage = float((genus_count*100)/total_genus_count)#percentage of a genus in genuss[]
-                    print "no of "+genus +" in list of genuss is "+ str(genus_count)
-                    print "% of "+genus+ "is "+str(genus_percentage) 
-                
-                for species in species_set:
-                    species_count = speciess.count(species)#no of instances of a genus in genuss[]
-                    species_percentage = float((species_count*100)/total_species_count)#percentage of a genus in genuss[]
-                    print "no of "+species +" in list of speciess is "+ str(species_count)
-                    print "% of "+species+ "is "+str(species_percentage) 
+                dict_array = update_dicts(phylum, phylum_size_dict, phylum_count_dict, size)
+                phylum_size_dict = dict_array[0]
+                phylum_count_dict = dict_array[1]
+
+                dict_array = update_dicts(class_name, classname_size_dict, classname_count_dict, size)
+                classname_size_dict = dict_array[0]
+                classname_count_dict = dict_array[1]
+
+                dict_array = update_dicts(order, order_size_dict, order_count_dict, size)
+                order_size_dict = dict_array[0]
+                order_count_dict = dict_array[1]
+
+                dict_array = update_dicts(genus, genus_size_dict, genus_count_dict, size)
+                genus_size_dict = dict_array[0]
+                genus_count_dict = dict_array[1]
+
+                dict_array = update_dicts(species, species_size_dict, species_count_dict, size)
+                species_size_dict  = dict_array[0]
+                species_count_dict = dict_array[1]
+        else:
+            no_hits_count+=1
+            no_hits_size+=int(size)
+
+    getcontext().prec = 4
+
+    unknown_percentage = (Decimal(no_hits_count)/Decimal(total_records+no_hits_count))*100
+    unknown_cluster_percentage = (Decimal(no_hits_size)/Decimal(total_cluster_size))*100
+
+    phylum_dict = get_dict_from_data(phylum_count_dict, phylum_size_dict, total_records, no_hits_count,no_hits_size, total_cluster_size, unknown_percentage, unknown_cluster_percentage)
+    classname_dict = get_dict_from_data(classname_count_dict, classname_size_dict, total_records, no_hits_count,no_hits_size, total_cluster_size, unknown_percentage, unknown_cluster_percentage)
+    order_dict = get_dict_from_data(order_count_dict, order_size_dict, total_records, no_hits_count,no_hits_size, total_cluster_size, unknown_percentage, unknown_cluster_percentage)
+    genus_dict = get_dict_from_data(genus_count_dict, genus_size_dict, total_records, no_hits_count, no_hits_size,total_cluster_size, unknown_percentage, unknown_cluster_percentage)
+    species_dict = get_dict_from_data(species_count_dict, species_size_dict, total_records, no_hits_count, no_hits_size,total_cluster_size, unknown_percentage, unknown_cluster_percentage)
+
+    write(phylum_dict,"Phylum",outfile)
+    write(classname_dict,"Class",outfile)
+    write(order_dict,"Order",outfile)
+    write(genus_dict,"Genus",outfile)
+    write(species_dict,"Species",outfile)
+
     return specimen_data_parsed
+
+def update_dicts(key, size_dict, count_dict, size):
+    if key in size_dict:
+        new_size = size_dict[key]+size
+        size_dict[key] = new_size
+        new_count = count_dict[key] + 1
+        count_dict[key] = new_count
+    else:
+        size_dict[key] = size
+        count_dict[key] = 1
+    return [size_dict, count_dict]
+
+def get_dict_from_data(count_dict, size_dict, total_records, no_hits_count, no_hits_size,total_cluster_size, unknown_percentage, unknown_cluster_percentage):
+    data_dict={}
+    for data_key in count_dict.keys():
+        count = count_dict[data_key]
+        percentage = (Decimal(count)/Decimal(total_records + no_hits_count))*100
+        cluster_percentage = (Decimal(size_dict[data_key])/Decimal(total_cluster_size))*100
+        data_dict[data_key] = [percentage,count,cluster_percentage,size_dict[data_key]]
+    data_dict['Unknown']=[unknown_percentage,no_hits_count,unknown_cluster_percentage,no_hits_size]
+    return data_dict
+
 def init_data():
-    outfile = open('templates/outfile.html','w')
+    outfile = open('templates/outfile.html','a')
+    outfile.write('<center><p><b><h4>Detailed Taxonomic Information</h4></b></p></center>')
     outfile.write('<table name = "final" id = "final"><thead><th>OTU</th><th>Phylum</th><th>Class</th><th>Order</th><th>Genus</th><th>Species</th></thead><tbody>')
     return outfile
-    
+
 def write_to_file(specimen_data_parsed):
     outfile = init_data()
     for data in specimen_data_parsed:
         outfile.write("<tr><td>"+str(data[0])+"</td><td>"+str(data[1])+"</td><td>"+str(data[2])+"</td><td>"+str(data[3])+"</td><td>"+str(data[4])+"</td><td>"+str(data[5])+"</td></tr>")
     outfile.write("</tbody></table></body></html>")
+    outfile.close()
 
+def write(my_dict,category,outfile):
+    outfile.write('<center><p><b><h4>'+category+' Abundance Information</h4></b></p></center>')
+    outfile.write('<table name = "'+category+'" id = "'+category+'"><thead><th>'+category+'</th><th>% of Clusters</th><th>Number of Clusters</th><th>% of Sequences</th><th>Number of Sequences</th></thead><tbody>')
+    for key in my_dict.iterkeys():
+        outfile.write('<tr><td>'+key+'</td><td>'+str((my_dict[key])[0])+'</td><td>'+str((my_dict[key])[1])+'</td><td>'+str((my_dict[key])[2])+'</td><td>'+str((my_dict[key])[3])+ '</td></tr>')
+    outfile.write('</tbody></table>')
