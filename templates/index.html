@@ -4,19 +4,19 @@
      <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="static/index-style.css" rel="stylesheet" type = "text/css">
 
-    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.css" rel="stylesheet" media="screen" type="text/css"> 
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.css" rel="stylesheet" media="screen" type="text/css">
     <link href="https://www.datatables.net/release-datatables/media/css/jquery.dataTables.css" rel="stylesheet" type="text/css">
     <link href="https://www.datatables.net/release-datatables/extensions/TableTools/css/dataTables.tableTools.css" rel="stylesheet" type="text/css">
     <link href="https://www.datatables.net/examples/resources/syntax/shCore.css" rel="stylesheet" type="text/css">
 
- 
+
   </head>
- 
+
 <body background = "linen">
    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.20/js/bootstrap.min.js"></script>
    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
    <script src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
-   
+
 <h3>
      <center>WEBMOTU</center>
 </h3>
@@ -29,30 +29,30 @@
       <ul class="nav navbar-nav">
          <li class=""><a href="#">Submit Job</a></li>
          <li class=""><a href="https://github.com/shrutakirti/webmotu/wiki/Introduction" onclick=window.open(this.href) target=”_blank”>Wiki</a></li>
-	<li class=""><a href="mailto:s1460720@sms.ed.ac.uk">Report Bug</a></li>
+        <li class=""><a href="mailto:s1460720@sms.ed.ac.uk">Report Bug</a></li>
          </ul>
-        
-      
+
+
    </div>
 </nav>
-<script>var validate = function validateDNA (seq)  {
+<script>function validateDNA (seq)  {
     //Based on: http://www.blopig.com/blog/2013/03/a-javascript-function-to-validate-fasta-sequences/
- 
-    
+
+
     seq = seq.trim();// remove trailing spaces
     var lines = seq.split('\n');// split on newlines...
- 
+
     // check for header
     if (seq[0] == '>') {
-        lines.splice(0, 1);// remove one line, starting at the first position  
+        lines.splice(0, 1);// remove one line, starting at the first position
     }
- 
-    // join the array back into a single string without newlines and 
+
+    // join the array back into a single string without newlines and
     // trailing or leading spaces
     seq = lines.join('').trim();
-     
+
     //Search for charaters that are not G, A, T or C.
-    if (seq.search(/[^gatc\s]/i) != -1) {   
+    if (seq.search(/[^gatc\s]/i) != -1) {
         //The seq string contains non-DNA characters
         return false;
         /// The next line can be used to return a cleaned version of the DNA
@@ -63,23 +63,15 @@
         //The seq string contains only GATC
         return true;
     }
-     
-}</script>
-<script>$('#browse').change( function(event) {
-var tmppath = URL.createObjectURL(event.target.files[0]);
-    $("img").fadeIn("fast").attr('src',URL.createObjectURL(event.target.files[0]));
 
-    $("#disp_tmp_path").html("Temporary Path(Copy it and try pasting it in browser address bar) --> <strong>["+tmppath+"]</strong>");
-});</script>
-<img src="" width="200" style="display:none;" />
-        <br>
-<div id="disp_tmp_path"></div>
+}</script>
+
 <center>
-   <form action"/taxonomy-info" method="post">
-     Enter FASTA file location:<br>
-    <span title="e.g. /home/user/mysequences.fasta">
-    <input type="text" name="input_file_path" input type="file" id="input_file_path" /></span>
-    <input type="file" id="browse" name="browse" onClick="validate"/>
+   <form action"/taxonomy-info" method="post" enctype="multipart/form-data">
+     Enter FASTA file:<br>
+    <span title="Enter File of sequences here">
+<input type="text" name="input_file_path" id="input_file_path" /></span>
+    <input type="file" id="browse" name="browse" onClick="validateDNA"/>
 
     </br>
      Enter Clustering percentage (Default value: 97.00):<br>
@@ -88,25 +80,28 @@ var tmppath = URL.createObjectURL(event.target.files[0]);
 <br>
 
     <br><input type="submit" value="Submit" onClick="this.form.submit();this.disabled=true;alert('Webmotu will now process your data...this may take a while. You will be redirected automatically when results are available. Click OK to continue');pro.style.width='100%'" /></br>
-<br><div class="progress">
+
+<input type="checkbox" name="check" id="check" value="check">Clean up temporary files after job is done
+
+    <br><div class="progress">
      <div name='pro' id='pro' class="progress-bar progress-bar-striped active"  aria-valuemax="50" aria-valuenow="50" aria-valuemin="0"><b>Working...</b></div>
 </div></br>
      <!-- <br><div id=pro name=pro class="progress-bar progress-bar-striped active"  role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
   </div></br>-->
    </form>
 
-       
- 
+
+
 
 </center>
 {% with messages = get_flashed_messages() %}
-	{% if messages %}
-		<pre>
-			{% for message in messages %}
+        {% if messages %}
+                <pre>
+                        {% for message in messages %}
                            {{message}}
-			{% endfor %}
-		</pre>
-	{% endif %}
+                        {% endfor %}
+                </pre>
+        {% endif %}
 {% endwith %}
 </body>
 </html>
