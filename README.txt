@@ -1,4 +1,4 @@
-Webmotu is ready to be deployed with some basic functionality! It can also be downloaded to run locally on a machine.
+Webmotu is ready to be deployed! It can also be downloaded to run locally on a machine.
 
 If you want to download and run webmotu on your machine, follow these steps:
 
