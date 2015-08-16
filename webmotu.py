@@ -3,7 +3,7 @@
 import os
 import bold_helper
 import uparse_helper
-import untitled7
+import detail_getter
 import flask, flask.views
 import tempfile
 import shutil
@@ -11,15 +11,10 @@ from flask import Flask, render_template, request, Response
 import time
 from werkzeug import secure_filename
 
-UPLOAD_FOLDER = '/tmp/uploads'
 ALLOWED_EXTENSIONS = set(['fasta', 'fa','fas','fsa'])
-
-tempdirectory = tempfile.mkdtemp()
-print tempdirectory
 
 app = flask.Flask(__name__)
 app.secret_key = 'solong'
-app.config['UPLOAD_FOLDER'] = tempdirectory
 
 my_dict = {}
 output_dict ={}
@@ -59,9 +54,9 @@ def validate(read_input, clustering_percentage):
     else:
         return False
 
-def dict_to_html(output_dict):#writes the first output html file
-    open("templates/finalresults.html", "w").writelines(open("templates/init.html").readlines())
-    boldresult_html = 'templates/finalresults.html'
+def dict_to_html(output_dict,filename_suffix):#writes the first output html file
+    boldresult_html = 'templates/finalresults' + filename_suffix + '.html'
+    open(boldresult_html, "w").writelines(open("templates/init.html").readlines())
     boldresults = open(boldresult_html,'a')
     boldresults.write('<center><h3>PRELIMINARY TAXONOMIC INFORMATION: TOP HIT FOR EACH OTU</h3><p>Top hit = highest similarity + highest count</p></center>\n')
     boldresults.write('<center><form action"/result" method="View.post2"></h4>\n')
@@ -91,7 +86,8 @@ class View(flask.views.MethodView):
 
     @app.route('/taxonomy-info')
     def post(self):
-
+        tempdirectory = tempfile.mkdtemp()
+        app.config['UPLOAD_FOLDER'] = tempdirectory
         result = validate(flask.request.form['input_file_path'],flask.request.form['clustering_percentage'])
 
         if result == False:
@@ -107,6 +103,7 @@ class View(flask.views.MethodView):
             flask.flash('SUCCESSFULLY SUBMITTED FILE')
 
             flask.flash('CLUSTERING PERCENTAGE ACCEPTED')
+            filename_suffix = str(int(round(time.time() * 1000)))
 
             try:
                 uparse_helper.uparse_pipeline(path,result,tempdirectory)
@@ -119,19 +116,21 @@ class View(flask.views.MethodView):
 
             #UPARSE PIPELINE COMPLETE, START BOLD CALLS FOR GENERAL INFORMATION
             output_dict = bold_helper.get_bold_results(tempdirectory)
-            boldresults = dict_to_html(output_dict)
-            specimen_data = untitled7.specimen_data_retrieval(output_dict)
-            specimen_data_parsed = untitled7.specimen_data_parser(specimen_data,output_dict)
-            final = untitled7.write_to_file(specimen_data_parsed)
+            boldresults = dict_to_html(output_dict,filename_suffix)
+            specimen_data = detail_getter.specimen_data_retrieval(output_dict)
+            specimen_data_parsed = detail_getter.specimen_data_parser(specimen_data,output_dict,filename_suffix)
+            final = detail_getter.write_to_file(specimen_data_parsed,filename_suffix)
             open("templates/finaltable.html", "w").writelines(open("templates/init.html").readlines())
-            open("templates/finaltable.html", "a").writelines(open("templates/outfile.html").readlines())
-            os.system("rm -f webmotu/templates/outfile.html")
-            return flask.render_template('finalresults.html')
+            open("templates/finaltable.html", "a").writelines(open("templates/outfile" + filename_suffix + ".html").readlines())
+            return flask.render_template('finalresults' + filename_suffix + '.html')
         return self.get()
 
     @app.route('/result')
     def post2():
         return flask.render_template('finaltable.html')
+
+
+
 
 app.add_url_rule('/', view_func=View.as_view('main'), methods = ['GET','POST','POST2'])
 app.debug = True
