@@ -32,8 +32,8 @@ def specimen_data_retrieval(my_dict):
 
     return specimen_dict
 
-def specimen_data_parser(specimen_dict,output_dict):
-    outfile = open('templates/outfile.html','w')
+def specimen_data_parser(specimen_dict,output_dict,filename_suffix):
+    outfile = open('templates/outfile' + filename_suffix + '.html','w')
 
     phylum_dict={}
     phylum_size_dict={}
@@ -144,14 +144,14 @@ def get_dict_from_data(count_dict, size_dict, total_records, no_hits_count, no_h
     data_dict['Unknown']=[unknown_percentage,no_hits_count,unknown_cluster_percentage,no_hits_size]
     return data_dict
 
-def init_data():
-    outfile = open('templates/outfile.html','a')
+def init_data(filename_suffix):
+    outfile = open('templates/outfile' + filename_suffix + '.html','a')
     outfile.write('<center><p><b><h4>Detailed Taxonomic Information</h4></b></p></center>')
     outfile.write('<table name = "final" id = "final"><thead><th>OTU</th><th>Phylum</th><th>Class</th><th>Order</th><th>Genus</th><th>Species</th></thead><tbody>')
     return outfile
 
-def write_to_file(specimen_data_parsed):
-    outfile = init_data()
+def write_to_file(specimen_data_parsed,filename_suffix):
+    outfile = init_data(filename_suffix)
     for data in specimen_data_parsed:
         outfile.write("<tr><td>"+str(data[0])+"</td><td>"+str(data[1])+"</td><td>"+str(data[2])+"</td><td>"+str(data[3])+"</td><td>"+str(data[4])+"</td><td>"+str(data[5])+"</td></tr>")
     outfile.write("</tbody></table></body></html>")
