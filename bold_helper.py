@@ -16,7 +16,7 @@ config = ConfigParser.ConfigParser()
 readconfig = config.read('webmotu_bold_config.cfg')#change to location of config file
 
 bold_url = config.get('Section', 'bold_url')
-
+#get data, parse data, write to file
 def get_bold_results(kirti_desktop):
     otus = fasta_read(kirti_desktop+'/otus.fasta')
     headers = header_read(kirti_desktop+'/otus.fasta')
@@ -50,7 +50,7 @@ def get_bold_results(kirti_desktop):
                         output_dict[otu] = size_array + element
         parsed_otu_tables.append(parsed_otu_table)
     return output_dict
-
+#parse data
 def xml_parser(otu_xml):
     try:
         tree = ET.parse(otu_xml)
@@ -71,7 +71,7 @@ def xml_parser(otu_xml):
         count = count + 1
 
     return table
-
+#get data
 def call_bold_api(otu):
     print otu
     url_values = otu
