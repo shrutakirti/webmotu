@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jun 22 12:21:01 2015
-
+This script accesses the Species Level Barcode Records database belonging to BOLD.
 @author: kirti
 """
 import urllib
@@ -10,12 +10,12 @@ import ConfigParser
 from decimal import *
 
 config = ConfigParser.ConfigParser()
-readconfig = config.read('webmotu_bold_config.cfg')#change to location of config file
-request_url = config.get('Section', 'bold_species_url')
+readconfig = config.read('webmotu_bold_config.cfg')#location of config file
+request_url = config.get('Section', 'bold_species_url')#read config
 specimen_datas=[]
 specimen_data_parsed=[]
 specimen_dict = {}
-
+#get data
 def specimen_data_retrieval(my_dict):
     # request_url = 'http://www.boldsystems.org/index.php/API_Public/specimen?ids='
     for key in my_dict.iterkeys():
@@ -31,7 +31,7 @@ def specimen_data_retrieval(my_dict):
             specimen_dict[key]=specimen_data
 
     return specimen_dict
-
+#parse data and get abundance scores, write to output file
 def specimen_data_parser(specimen_dict,output_dict,filename_suffix):
     outfile = open('templates/outfile' + filename_suffix + '.html','w')
 
@@ -105,7 +105,7 @@ def specimen_data_parser(specimen_dict,output_dict,filename_suffix):
             no_hits_size+=int(size)
 
     getcontext().prec = 4
-
+#abundance data calculation
     unknown_percentage = (Decimal(no_hits_count)/Decimal(total_records+no_hits_count))*100
     unknown_cluster_percentage = (Decimal(no_hits_size)/Decimal(total_cluster_size))*100
 
@@ -143,13 +143,13 @@ def get_dict_from_data(count_dict, size_dict, total_records, no_hits_count, no_h
         data_dict[data_key] = [percentage,count,cluster_percentage,size_dict[data_key]]
     data_dict['Unknown']=[unknown_percentage,no_hits_count,unknown_cluster_percentage,no_hits_size]
     return data_dict
-
+#initialize output file
 def init_data(filename_suffix):
     outfile = open('templates/outfile' + filename_suffix + '.html','a')
     outfile.write('<center><p><b><h4>Detailed Taxonomic Information</h4></b></p></center>')
     outfile.write('<table name = "final" id = "final"><thead><th>OTU</th><th>Phylum</th><th>Class</th><th>Order</th><th>Genus</th><th>Species</th></thead><tbody>')
     return outfile
-
+#write to file
 def write_to_file(specimen_data_parsed,filename_suffix):
     outfile = init_data(filename_suffix)
     for data in specimen_data_parsed:
