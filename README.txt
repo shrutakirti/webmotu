@@ -1,6 +1,6 @@
 Webmotu performs Barcode Clustering and Taxonomic Identification.
 -----------------------------------------------------------------------
-**If you want to access webmotu online, goto www.webmotu.bio.ed.ac.uk**
+**If you want to access webmotu online, goto www.webmotu.bio.ed.ac.uk
 -----------------------------------------------------------------------
 This folder contains 2 config files and 4 python scripts:
 
